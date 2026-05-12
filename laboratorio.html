@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LDAC — Laboratorio de Análisis Clínicos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+/* ───────────────────────────────────────────
+   TOKENS
+─────────────────────────────────────────── */
+:root{
+  --c0:#f0faf8;   /* fondo global */
+  --c1:#e0f5f1;   /* fondo sidebar */
+  --c2:#c2ebe3;   /* borde suave */
+  --c3:#8dd4c7;   /* borde medio */
+  --c4:#3ab5a2;   /* acento principal */
+  --c5:#1f8a7a;   /* acento oscuro */
+  --c6:#0d5c50;   /* texto fuerte */
+  --cw:#ffffff;
+  --ct:#1a3530;   /* texto principal */
+  --ct2:#4a7a72;  /* texto secundario */
+  --ct3:#8ab3ad;  /* texto terciario */
+
+  --warn-bg:#fffbec; --warn-bd:#f5d87a; --warn-tx:#7a5800;
+  --ok-bg:#edfaf3;   --ok-bd:#7dd9a8;   --ok-tx:#0c5e32;
+  --info-bg:#eaf6fd; --info-bd:#7dd1f0; --info-tx:#0a4f70;
+
+  --r:10px; --rl:16px;
+  --sb:240px;
+  --trans:.22s cubic-bezier(.4,0,.2,1);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;scroll-behavior:smooth}
+body{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  background:var(--c0);
+  color:var(--ct);
+  display:flex;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ───────────────────────────────────────────
+   SIDEBAR
+─────────────────────────────────────────── */
+.sidebar{
+  width:var(--sb);
+  min-height:100vh;
+  background:linear-gradient(160deg,#1a6b5f 0%,#0d4a41 100%);
+  position:fixed;top:0;left:0;z-index:300;
+  display:flex;flex-direction:column;
+  box-shadow:4px 0 24px rgba(13,60,48,.18);
+  transition:transform var(--trans);
+}
+
+/* Brand */
+.sb-brand{
+  padding:1.5rem 1.25rem 1.25rem;
+  border-bottom:1px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;gap:12px;
+}
+.sb-logo{
+  width:46px;height:46px;min-width:46px;
+  background:rgba(255,255,255,.12);
+  border:1.5px solid rgba(255,255,255,.2);
+  border-radius:var(--r);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.sb-logo svg{width:26px;height:26px;fill:none;stroke:#a8e8df;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.sb-name{
+  font-family:'DM Serif Display',serif;
+  font-size:18px;line-height:1.15;color:#e0f5f1;
+  letter-spacing:.01em;
+}
+.sb-tag{font-size:10px;font-weight:600;color:var(--c3);letter-spacing:.06em;text-transform:uppercase;margin-top:3px}
+
+/* Date strip */
+.sb-date{
+  padding:.7rem 1.25rem;
+  font-size:11px;font-weight:600;color:var(--c3);
+  letter-spacing:.03em;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+
+/* Nav sections */
+.sb-sec{
+  padding:.9rem 1rem .3rem;
+  font-size:9.5px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:rgba(255,255,255,.3);
+}
+
+.nav-btn{
+  display:flex;align-items:center;gap:11px;
+  width:100%;padding:10px 1.25rem;
+  background:none;border:none;cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:13.5px;font-weight:600;
+  color:rgba(255,255,255,.6);
+  text-align:left;position:relative;
+  transition:color var(--trans),background var(--trans);
+  border-radius:0;
+}
+.nav-btn svg{width:19px;height:19px;flex-shrink:0;transition:transform var(--trans)}
+.nav-btn:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.07)}
+.nav-btn:hover svg{transform:scale(1.1)}
+.nav-btn.act{color:#fff;background:rgba(255,255,255,.13)}
+.nav-btn.act::after{
+  content:'';position:absolute;right:0;top:8px;bottom:8px;
+  width:3px;background:var(--c3);border-radius:3px 0 0 3px;
+}
+
+.sb-badge{
+  margin-left:auto;
+  background:var(--c4);color:#fff;
+  font-size:11px;font-weight:700;
+  padding:2px 8px;border-radius:99px;
+  min-width:22px;text-align:center;
+  transition:transform .2s;
+}
+.sb-badge.bump{animation:bump .3s ease}
+@keyframes bump{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}
+
+.sb-footer{
+  margin-top:auto;padding:1rem 1.25rem;
+  border-top:1px solid rgba(255,255,255,.08);
+  font-size:11px;color:rgba(255,255,255,.25);
+  text-align:center;line-height:1.5;
+}
+
+/* ───────────────────────────────────────────
+   MAIN
+─────────────────────────────────────────── */
+.main{margin-left:var(--sb);flex:1;display:flex;flex-direction:column;min-height:100vh}
+
+.topbar{
+  background:var(--cw);
+  border-bottom:1px solid var(--c2);
+  padding:0 2rem;height:58px;
+  display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 1px 8px rgba(58,181,162,.06);
+}
+.topbar-title{font-size:17px;font-weight:700;color:var(--ct)}
+.topbar-dot{width:5px;height:5px;background:var(--c4);border-radius:50%;flex-shrink:0}
+.topbar-sub{font-size:12px;font-weight:500;color:var(--ct3)}
+
+/* Pages */
+.page{display:none;padding:2rem;max-width:760px;animation:fadeUp .3s ease both}
+.page.act{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ───────────────────────────────────────────
+   CARDS
+─────────────────────────────────────────── */
+.card{
+  background:var(--cw);
+  border:1px solid var(--c2);
+  border-radius:var(--rl);
+  padding:1.35rem 1.6rem;
+  margin-bottom:1rem;
+  box-shadow:0 2px 12px rgba(58,181,162,.05);
+  transition:box-shadow var(--trans);
+}
+.card:hover{box-shadow:0 4px 20px rgba(58,181,162,.1)}
+
+.card-hdr{
+  display:flex;align-items:center;gap:8px;
+  font-size:11px;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--c5);
+  margin-bottom:1rem;
+  padding-bottom:.75rem;
+  border-bottom:1.5px solid var(--c1);
+}
+.card-hdr svg{width:16px;height:16px;flex-shrink:0}
+
+/* ───────────────────────────────────────────
+   FORM
+─────────────────────────────────────────── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.full{grid-column:1/-1}
+.fg{display:flex;flex-direction:column;gap:5px}
+
+label{font-size:12px;font-weight:700;color:var(--ct2)}
+
+input,textarea,select{
+  width:100%;padding:9px 13px;
+  font-size:13.5px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;
+  border:1.5px solid var(--c2);border-radius:var(--r);
+  background:var(--c0);color:var(--ct);
+  transition:border-color var(--trans),box-shadow var(--trans),background var(--trans);
+}
+input:focus,textarea:focus,select:focus{
+  outline:none;background:var(--cw);
+  border-color:var(--c4);
+  box-shadow:0 0 0 3px rgba(58,181,162,.14);
+}
+textarea{resize:vertical;min-height:72px}
+
+/* ───────────────────────────────────────────
+   BUTTONS
+─────────────────────────────────────────── */
+.btn{
+  padding:9px 20px;border-radius:var(--r);
+  font-size:13.5px;font-weight:700;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  cursor:pointer;border:1.5px solid;
+  display:inline-flex;align-items:center;gap:7px;
+  transition:all var(--trans);
+}
+.btn svg{width:17px;height:17px;flex-shrink:0}
+.btn:active{transform:scale(.97)}
+
+.btn-primary{
+  background:var(--c4);color:#fff;border-color:var(--c4);
+  padding:10px 26px;font-size:14px;
+  box-shadow:0 4px 14px rgba(58,181,162,.3);
+}
+.btn-primary:hover{background:var(--c5);border-color:var(--c5);box-shadow:0 6px 18px rgba(58,181,162,.35)}
+
+.btn-soft{background:var(--c1);color:var(--c6);border-color:var(--c2)}
+.btn-soft:hover{background:var(--c2);border-color:var(--c3)}
+
+.btn-ghost{background:none;color:var(--ct2);border-color:var(--c2)}
+.btn-ghost:hover{background:var(--c0)}
+
+.btn-warn{background:var(--warn-bg);color:var(--warn-tx);border-color:var(--warn-bd)}
+.btn-warn:hover{opacity:.85}
+
+.btn-sm{padding:6px 14px;font-size:12.5px}
+
+.actions{
+  display:flex;gap:10px;justify-content:flex-end;
+  margin-top:1.25rem;padding-top:1rem;
+  border-top:1.5px solid var(--c1);
+}
+
+/* ───────────────────────────────────────────
+   BANNER — paciente detectado
+─────────────────────────────────────────── */
+.banner{
+  display:none;
+  background:var(--warn-bg);border:1.5px solid var(--warn-bd);
+  border-radius:var(--rl);padding:14px 16px;margin-bottom:1rem;
+  gap:12px;align-items:flex-start;
+  animation:slideIn .25s ease both;
+}
+.banner.vis{display:flex}
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.banner-ico{
+  width:36px;height:36px;min-width:36px;border-radius:50%;
+  background:var(--warn-bd);display:flex;align-items:center;justify-content:center;
+  margin-top:1px;
+}
+.banner-ico svg{width:19px;height:19px;stroke:var(--warn-tx);fill:none;stroke-width:2;stroke-linecap:round}
+.banner p{font-size:13px;font-weight:500;color:var(--warn-tx);line-height:1.6}
+.banner strong{font-weight:700}
+.banner-btns{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+
+/* ───────────────────────────────────────────
+   EXÁMENES TAGS
+─────────────────────────────────────────── */
+.exam-wrap{display:flex;flex-direction:column;gap:7px;min-height:4px}
+.exam-tag{
+  display:flex;align-items:center;gap:9px;
+  background:var(--c0);border:1.5px solid var(--c2);
+  border-radius:var(--r);padding:8px 12px;
+  font-size:13px;font-weight:600;color:var(--c6);
+  animation:popIn .2s ease both;
+}
+@keyframes popIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+.exam-tag svg{width:15px;height:15px;flex-shrink:0;stroke:var(--c4)}
+.exam-del{
+  margin-left:auto;background:none;border:none;cursor:pointer;
+  color:var(--ct3);padding:2px;border-radius:4px;
+  transition:color var(--trans),background var(--trans);
+  display:flex;align-items:center;
+}
+.exam-del:hover{color:#c0392b;background:#fef2f2}
+.exam-del svg{width:14px;height:14px;stroke:currentColor}
+
+.add-row{display:flex;gap:8px;margin-top:10px;align-items:flex-end}
+.add-row input:first-child{flex:1}
+
+/* ───────────────────────────────────────────
+   DÍA — stats row
+─────────────────────────────────────────── */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem}
+.stat-card{
+  background:var(--cw);border:1px solid var(--c2);border-radius:var(--rl);
+  padding:.9rem 1rem;text-align:center;
+  transition:border-color var(--trans),box-shadow var(--trans);
+}
+.stat-card:hover{border-color:var(--c3);box-shadow:0 4px 16px rgba(58,181,162,.08)}
+.stat-lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ct3);margin-bottom:5px}
+.stat-val{font-size:28px;font-weight:700;color:var(--c5);line-height:1}
+.stat-sub{font-size:12px;font-weight:600;color:var(--ct2);margin-top:4px}
+
+/* ───────────────────────────────────────────
+   ORDEN CARD
+─────────────────────────────────────────── */
+.orden-card{
+  background:var(--cw);border:1px solid var(--c2);border-radius:var(--rl);
+  padding:1rem 1.35rem;margin-bottom:10px;
+  transition:border-color var(--trans),box-shadow var(--trans);
+  animation:fadeUp .25s ease both;
+}
+.orden-card:hover{border-color:var(--c3);box-shadow:0 4px 16px rgba(58,181,162,.08)}
+
+.orden-hdr{display:flex;align-items:center;gap:11px;margin-bottom:9px}
+.avatar{
+  width:42px;height:42px;min-width:42px;border-radius:50%;
+  background:linear-gradient(135deg,var(--c2),var(--c3));
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:var(--c6);
+  flex-shrink:0;letter-spacing:.02em;
+}
+.orden-name{font-weight:700;font-size:15px;line-height:1.2}
+.orden-meta{font-size:12px;color:var(--ct3);font-weight:500;margin-top:2px}
+
+.pills{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
+.pill{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--c0);border:1px solid var(--c2);
+  border-radius:99px;padding:3px 10px;
+  font-size:12px;font-weight:600;color:var(--ct2);
+}
+.pill svg{width:11px;height:11px;stroke:var(--c4)}
+
+.orden-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:9px;padding-top:9px;border-top:1px solid var(--c1);
+}
+
+.status-sel{
+  padding:6px 11px;font-size:12.5px;font-weight:600;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  border:1.5px solid var(--c2);border-radius:var(--r);
+  background:var(--c0);color:var(--ct);cursor:pointer;
+  transition:border-color var(--trans);
+}
+.status-sel:focus{outline:none;border-color:var(--c4)}
+
+/* ───────────────────────────────────────────
+   STATUS BADGES
+─────────────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:99px;font-size:11.5px;font-weight:700}
+.b-pend{background:var(--warn-bg);color:var(--warn-tx);border:1px solid var(--warn-bd)}
+.b-list{background:var(--info-bg);color:var(--info-tx);border:1px solid var(--info-bd)}
+.b-entr{background:var(--ok-bg);  color:var(--ok-tx);  border:1px solid var(--ok-bd)}
+.badge svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round}
+
+/* ───────────────────────────────────────────
+   HISTORIAL
+─────────────────────────────────────────── */
+.search-wrap{position:relative;margin-bottom:1rem}
+.search-wrap svg{
+  position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  width:17px;height:17px;stroke:var(--ct3);fill:none;
+  stroke-width:2;stroke-linecap:round;pointer-events:none;
+}
+.search-wrap input{padding-left:40px}
+
+.counter{font-size:12px;font-weight:600;color:var(--ct3);margin-bottom:.85rem}
+
+.pac-card{
+  background:var(--cw);border:1px solid var(--c2);border-radius:var(--rl);
+  padding:1rem 1.35rem;margin-bottom:8px;cursor:pointer;
+  transition:border-color var(--trans),box-shadow var(--trans);
+  animation:fadeUp .25s ease both;
+}
+.pac-card:hover{border-color:var(--c4);box-shadow:0 4px 16px rgba(58,181,162,.1)}
+
+.pac-hdr{display:flex;align-items:center;gap:12px}
+.chev{
+  width:18px;height:18px;flex-shrink:0;margin-left:auto;
+  stroke:var(--ct3);fill:none;stroke-width:2;stroke-linecap:round;
+  transition:transform var(--trans);
+}
+.chev.open{transform:rotate(180deg)}
+
+.det-box{
+  background:var(--c0);border-radius:var(--r);border:1px solid var(--c2);
+  padding:1rem 1.1rem;margin-top:10px;
+  animation:fadeUp .2s ease both;
+}
+.det-sec{margin-bottom:.85rem}
+.det-sec:last-child{margin-bottom:0}
+.det-sec h5{
+  font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--c4);margin-bottom:7px;
+  display:flex;align-items:center;gap:5px;
+}
+.det-sec h5 svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+
+.vis-row{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:8px 0;border-bottom:1px solid var(--c1);font-size:12.5px;
+}
+.vis-row:last-child{border-bottom:none}
+.vis-date{color:var(--ct3);min-width:92px;font-weight:700;font-size:11.5px;padding-top:4px;flex-shrink:0}
+
+.phone-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--cw);border:1px solid var(--c2);
+  border-radius:var(--r);padding:5px 11px;
+  font-size:13px;font-weight:600;color:var(--ct2);
+}
+.phone-chip svg{width:13px;height:13px;stroke:var(--c4);fill:none;stroke-width:2;stroke-linecap:round}
+
+/* ───────────────────────────────────────────
+   DELETE BUTTONS
+─────────────────────────────────────────── */
+.btn-del{
+  background:none;border:1.5px solid #fca5a5;
+  color:#dc2626;border-radius:var(--r);
+  padding:5px 11px;font-size:12px;font-weight:700;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  cursor:pointer;display:inline-flex;align-items:center;gap:5px;
+  transition:all var(--trans);
+}
+.btn-del svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0}
+.btn-del:hover{background:#fef2f2;border-color:#dc2626}
+
+.btn-del-sm{
+  background:none;border:none;cursor:pointer;
+  color:#fca5a5;padding:4px;border-radius:6px;
+  display:inline-flex;align-items:center;
+  transition:color var(--trans),background var(--trans);
+}
+.btn-del-sm svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.btn-del-sm:hover{color:#dc2626;background:#fef2f2}
+
+/* ───────────────────────────────────────────
+   CONFIRM MODAL
+─────────────────────────────────────────── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:999;
+  background:rgba(10,30,26,.45);backdrop-filter:blur(3px);
+  align-items:center;justify-content:center;
+}
+.modal-overlay.vis{display:flex;animation:fadeOverlay .18s ease both}
+@keyframes fadeOverlay{from{opacity:0}to{opacity:1}}
+
+.modal{
+  background:var(--cw);border-radius:var(--rl);
+  padding:1.75rem 2rem;max-width:380px;width:90%;
+  box-shadow:0 20px 60px rgba(10,30,26,.25);
+  animation:modalPop .22s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes modalPop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+
+.modal-ico{
+  width:48px;height:48px;background:#fef2f2;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;margin-bottom:1rem;
+}
+.modal-ico svg{width:24px;height:24px;stroke:#dc2626;fill:none;stroke-width:2;stroke-linecap:round}
+
+.modal h3{font-size:17px;font-weight:700;color:var(--ct);margin-bottom:6px}
+.modal p{font-size:13px;color:var(--ct2);line-height:1.6;font-weight:500}
+.modal-strong{font-weight:700;color:var(--ct)}
+
+.modal-actions{display:flex;gap:10px;margin-top:1.5rem;justify-content:flex-end}
+
+/* ───────────────────────────────────────────
+   EMPTY + HINT
+─────────────────────────────────────────── */
+.empty{text-align:center;padding:3.5rem 1rem;color:var(--ct3)}
+.empty svg{width:52px;height:52px;stroke:var(--c2);fill:none;stroke-width:1.4;stroke-linecap:round;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto}
+.empty p{font-size:14px;font-weight:600}
+
+.hint{
+  background:var(--c0);border:1px solid var(--c2);border-radius:var(--r);
+  padding:11px 15px;margin-bottom:1.25rem;
+  font-size:13px;font-weight:500;color:var(--ct2);
+  display:flex;align-items:flex-start;gap:9px;
+  line-height:1.55;
+}
+.hint svg{width:17px;height:17px;flex-shrink:0;stroke:var(--c4);fill:none;stroke-width:2;stroke-linecap:round;margin-top:1px}
+
+/* ── INLINE SVG ICONS convenience ── */
+.ico-user{--s:2}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<nav class="sidebar">
+
+  <div class="sb-brand">
+    <div class="sb-logo">
+      <!-- Microscope SVG -->
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="3"/>
+        <path d="M12 11v5M8 21h8M12 16v2M9 21v-1a3 3 0 0 1 6 0v1"/>
+        <path d="M7 8H5a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1h2"/>
+        <path d="M12 5V3"/>
+        <path d="M14.5 6.5 16 5"/>
+      </svg>
+    </div>
+    <div>
+      <div class="sb-name">LDAC</div>
+      <div class="sb-tag">Análisis Clínicos</div>
+    </div>
+  </div>
+
+  <div class="sb-date" id="sb-fecha">—</div>
+
+  <div class="sb-sec">Registro</div>
+  <button class="nav-btn act" onclick="sw('nueva',this)" id="nb-nueva">
+    <!-- plus-circle -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    Nueva orden
+  </button>
+
+  <div class="sb-sec">Consulta</div>
+  <button class="nav-btn" onclick="sw('dia',this)" id="nb-dia">
+    <!-- calendar -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Órdenes del día
+    <span class="sb-badge" id="badge-dia">0</span>
+  </button>
+  <button class="nav-btn" onclick="sw('historial',this)" id="nb-hist">
+    <!-- users -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Historial
+    <span class="sb-badge" id="badge-pac">0</span>
+  </button>
+
+  <div class="sb-footer">Laboratorio de Análisis<br>Clínicos LDAC &copy; 2025</div>
+</nav>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div class="main">
+
+  <div class="topbar">
+    <span class="topbar-title" id="top-title">Nueva orden</span>
+    <span class="topbar-dot"></span>
+    <span class="topbar-sub" id="top-sub"></span>
+  </div>
+
+  <!-- ── NUEVA ORDEN ── -->
+  <div id="page-nueva" class="page act">
+
+    <div class="hint">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      Escribe el nombre completo del paciente. Si ya tiene historial, el sistema lo detecta automáticamente y solo agregas los estudios nuevos.
+    </div>
+
+    <!-- Banner -->
+    <div id="banner" class="banner">
+      <div class="banner-ico">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>
+      </div>
+      <div style="flex:1">
+        <p id="banner-txt"></p>
+        <div class="banner-btns">
+          <button class="btn btn-sm btn-warn" onclick="cargarExistente()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:14px;height:14px"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+            Cargar sus datos
+          </button>
+          <button class="btn btn-sm btn-ghost" onclick="cerrarBanner()">Registrar como nuevo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Datos paciente -->
+    <div class="card">
+      <div class="card-hdr">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Datos del paciente
+      </div>
+      <div class="grid2">
+        <div class="fg full">
+          <label>Nombre completo *</label>
+          <input id="n-nombre" type="text" placeholder="Ej. María del Carmen Flores Vega"
+                 oninput="detectar(this.value)" autocomplete="off">
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="fg">
+          <label>Edad</label>
+          <input id="n-edad" type="number" placeholder="Ej. 45" min="0" max="130">
+        </div>
+        <div class="fg">
+          <label>Teléfono</label>
+          <input id="n-tel" type="text" placeholder="Ej. 33 1234 5678">
+        </div>
+      </div>
+      <div class="fg">
+        <label>Antecedentes de enfermedades <span style="font-weight:400;color:var(--ct3)">(si aplica)</span></label>
+        <textarea id="n-antec" placeholder="Ej. Diabetes tipo 2, hipertensión arterial, alergias conocidas..."></textarea>
+      </div>
+    </div>
+
+    <!-- Exámenes -->
+    <div class="card">
+      <div class="card-hdr">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+        Estudio clínico realizado
+      </div>
+      <div id="exam-list" class="exam-wrap"></div>
+      <div class="add-row">
+        <input id="n-exam" type="text" placeholder="Nombre del estudio (presiona Enter para agregar)"
+               onkeydown="if(event.key==='Enter'){addExam();event.preventDefault()}">
+        <button class="btn btn-sm btn-soft" onclick="addExam()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:15px;height:15px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar
+        </button>
+      </div>
+      <div class="actions">
+        <button class="btn btn-ghost" onclick="limpiar()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:15px;height:15px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.86"/></svg>
+          Limpiar
+        </button>
+        <button class="btn btn-primary" onclick="guardar()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:16px;height:16px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Guardar registro
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ÓRDENES DEL DÍA ── -->
+  <div id="page-dia" class="page">
+    <div class="stat-row" id="stat-row"></div>
+    <div id="ordenes-list"></div>
+  </div>
+
+  <!-- ── HISTORIAL ── -->
+  <div id="page-historial" class="page">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="search" placeholder="Buscar paciente por nombre..." oninput="renderHistorial(this.value)">
+    </div>
+    <div id="hist-count" class="counter"></div>
+    <div id="hist-list"></div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ═══════════════ MODAL CONFIRMACIÓN ═══════════════ -->
+<div class="modal-overlay" id="modal-overlay" onclick="cerrarModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-ico">
+      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    </div>
+    <h3 id="modal-title">¿Eliminar registro?</h3>
+    <p id="modal-body">Esta acción no se puede deshacer.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn" id="modal-confirm"
+              style="background:#dc2626;color:#fff;border-color:#dc2626"
+              onclick="confirmarEliminar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:15px;height:15px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        Sí, eliminar
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ── LOADING SCREEN ── */
+#loading-screen{
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(160deg,#1a6b5f,#0d4a41);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:18px;
+  transition:opacity .4s ease;
+}
+#loading-screen.hide{opacity:0;pointer-events:none}
+.ld-logo{
+  width:64px;height:64px;background:rgba(255,255,255,.12);
+  border:2px solid rgba(255,255,255,.2);border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+}
+.ld-logo svg{width:36px;height:36px;fill:none;stroke:#a8e8df;stroke-width:1.6;stroke-linecap:round}
+.ld-title{font-family:'DM Serif Display',serif;font-size:22px;color:#e0f5f1;letter-spacing:.02em}
+.ld-sub{font-size:13px;color:#8dd4c7;font-weight:600;letter-spacing:.03em}
+.ld-spinner{
+  width:36px;height:36px;border:3px solid rgba(255,255,255,.15);
+  border-top-color:#3ab5a2;border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ld-msg{font-size:12px;color:rgba(255,255,255,.4);font-weight:500}
+
+/* ── SYNC INDICATOR ── */
+#sync-bar{
+  position:fixed;bottom:16px;right:16px;z-index:500;
+  background:var(--cw);border:1px solid var(--c2);
+  border-radius:var(--r);padding:8px 14px;
+  font-size:12px;font-weight:600;
+  display:flex;align-items:center;gap:7px;
+  box-shadow:0 4px 16px rgba(10,30,26,.12);
+  opacity:0;transform:translateY(6px);
+  transition:opacity .25s,transform .25s;
+  pointer-events:none;
+}
+#sync-bar.vis{opacity:1;transform:none}
+#sync-bar.ok  { border-color:var(--ok-bd); color:var(--ok-tx); }
+#sync-bar.err { border-color:#fca5a5;      color:#dc2626; }
+#sync-bar.saving { border-color:var(--c3); color:var(--c5); }
+.sync-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ok   .sync-dot{background:var(--ok-tx)}
+.err  .sync-dot{background:#dc2626}
+.saving .sync-dot{background:var(--c4);animation:pulse .8s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+
+<!-- PANTALLA DE CARGA -->
+<div id="loading-screen">
+  <div class="ld-logo">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M12 11v5M8 21h8M12 16v2M9 21v-1a3 3 0 0 1 6 0v1"/><path d="M7 8H5a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1h2"/><path d="M12 5V3"/><path d="M14.5 6.5 16 5"/></svg>
+  </div>
+  <div class="ld-title">LDAC</div>
+  <div class="ld-spinner"></div>
+  <div class="ld-msg" id="ld-msg">Conectando con Google Sheets…</div>
+</div>
+
+<!-- INDICADOR DE GUARDADO -->
+<div id="sync-bar">
+  <span class="sync-dot"></span>
+  <span id="sync-txt"></span>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   GOOGLE SHEETS API
+   Los datos se leen y escriben en tu hoja de cálculo.
+   localStorage se usa solo como caché local de respaldo.
+══════════════════════════════════════════════════════ */
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzuWyHmAwn2hELvNvbq2H4xZiuckoy0XsrtjSAl5tIjHhZc9xe8bKJKJaBb7C64_I1G/exec';
+const CACHE_KEY  = 'ldac_cache_v1';
+
+/* ── Sync indicator ── */
+let syncTimer = null;
+function showSync(state, msg){
+  const bar = document.getElementById('sync-bar');
+  bar.className = 'vis ' + state;
+  document.getElementById('sync-txt').textContent = msg;
+  clearTimeout(syncTimer);
+  if(state !== 'saving') syncTimer = setTimeout(()=>{ bar.classList.remove('vis'); }, 3000);
+}
+
+/* ── Cache local (respaldo si no hay internet) ── */
+function cacheGet(){ try{ const r=localStorage.getItem(CACHE_KEY); return r?JSON.parse(r):null; } catch(e){ return null; } }
+function cacheSet(db){ try{ localStorage.setItem(CACHE_KEY,JSON.stringify(db)); } catch(e){} }
+
+/* ── Cargar datos desde Sheets ── */
+async function loadDB(){
+  try{
+    document.getElementById('ld-msg').textContent = 'Cargando datos…';
+    const res = await fetch(SHEETS_URL + '?t=' + Date.now());
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    const db = { pacientes: data.pacientes||[], ordenes: data.ordenes||[] };
+
+    /* Primera vez: migrar datos de localStorage antiguo si los hay */
+    const legacy = localStorage.getItem('ldac_db_v1');
+    if(legacy && db.pacientes.length === 0){
+      document.getElementById('ld-msg').textContent = 'Migrando datos locales…';
+      const old = JSON.parse(legacy);
+      if(old.pacientes && old.pacientes.length){
+        await saveDB(old);
+        localStorage.removeItem('ldac_db_v1');
+        return old;
+      }
+    }
+
+    cacheSet(db);
+    return db;
+  } catch(err){
+    console.warn('Sheets no disponible, usando caché local:', err.message);
+    const cached = cacheGet();
+    if(cached) return cached;
+    return { pacientes:[], ordenes:[] };
+  }
+}
+
+/* ── Guardar datos en Sheets ── */
+async function saveDB(db){
+  cacheSet(db); /* guarda inmediatamente en caché */
+  showSync('saving', 'Guardando en Google Sheets…');
+  try{
+    const res = await fetch(SHEETS_URL, {
+      method: 'POST',
+      body: JSON.stringify(db),
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    showSync('ok', '✓ Guardado en Google Sheets');
+  } catch(err){
+    console.error('Error al guardar en Sheets:', err.message);
+    showSync('err', 'Sin conexión — guardado localmente');
+  }
+}
+
+/* ══ INICIO: cargar datos y arrancar la app ══ */
+let DB       = { pacientes:[], ordenes:[] };
+let exams    = [];
+let matchIdx = -1;
+let openPacs = new Set();
+
+(async () => {
+  DB = await loadDB();
+  /* Ocultar pantalla de carga */
+  const ls = document.getElementById('loading-screen');
+  ls.classList.add('hide');
+  setTimeout(()=>ls.remove(), 450);
+  /* Arrancar la app */
+  arrancar();
+})();
+
+/* ── Fecha (constantes globales) ── */
+const NOW     = new Date();
+const HOY_KEY = NOW.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
+const HOY_LONG= NOW.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+const PAGE_META = {
+  nueva:    ['Nueva orden',           'Registra la visita de hoy'],
+  dia:      ['Órdenes del día',       HOY_KEY],
+  historial:['Historial de pacientes','Expedientes de todos los pacientes'],
+};
+
+/* ── Utilities (globales, disponibles antes de arrancar) ── */
+function norm(s){ return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+function ini(n){ return n.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase(); }
+
+function badge(s){
+  const cfg = {
+    pendiente:{cls:'b-pend',ico:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',lbl:'Pendiente'},
+    listo:    {cls:'b-list',ico:'<polyline points="20 6 9 17 4 12"/>',lbl:'Listo'},
+    entregado:{cls:'b-entr',ico:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',lbl:'Entregado'},
+  };
+  const c = cfg[s]||cfg.entregado;
+  return `<span class="badge ${c.cls}"><svg viewBox="0 0 24 24">${c.ico}</svg>${c.lbl}</span>`;
+}
+
+function bump(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.classList.remove('bump');
+  void el.offsetWidth;
+  el.classList.add('bump');
+}
+
+function actualizarBadges(){
+  const hoyN = DB.ordenes.filter(o=>o.fecha===HOY_KEY).length;
+  document.getElementById('badge-dia').textContent = hoyN;
+  document.getElementById('badge-pac').textContent = DB.pacientes.length;
+}
+
+/* ── arrancar() — se llama una vez que los datos están listos ── */
+function arrancar(){
+  document.getElementById('sb-fecha').textContent = HOY_LONG.charAt(0).toUpperCase()+HOY_LONG.slice(1);
+  actualizarBadges();
+}
+
+/* ─────────────── NAVEGACIÓN ─────────────── */
+function sw(page, btn){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('act'));
+  if(btn) btn.classList.add('act');
+  ['nueva','dia','historial'].forEach(p=>{
+    const el=document.getElementById('page-'+p);
+    el.classList.remove('act');
+  });
+  const pg=document.getElementById('page-'+page);
+  pg.classList.add('act');
+  // re-trigger animation
+  pg.style.animation='none'; void pg.offsetWidth; pg.style.animation='';
+
+  const[t,s]=PAGE_META[page];
+  document.getElementById('top-title').textContent=t;
+  document.getElementById('top-sub').textContent=s;
+
+  if(page==='dia')       renderDia();
+  if(page==='historial') renderHistorial('');
+}
+
+/* ─────────────── DETECCIÓN ─────────────── */
+function detectar(val){
+  const ban=document.getElementById('banner');
+  if(val.length<3){ban.classList.remove('vis');matchIdx=-1;return;}
+  const n=norm(val);
+  const idx=DB.pacientes.findIndex(p=>norm(p.nombre)===n||norm(p.nombre).includes(n)||n.includes(norm(p.nombre)));
+  if(idx>=0){
+    matchIdx=idx;
+    const p=DB.pacientes[idx];
+    const vis=p.visitas?p.visitas.length:0;
+    const tel=p.telefonos&&p.telefonos.length
+      ?`Teléfono(s) registrado(s): ${p.telefonos.join(', ')}`
+      :'Sin teléfono registrado';
+    document.getElementById('banner-txt').innerHTML=
+      `<strong>Paciente encontrado:</strong> ${p.nombre} — ${vis} visita(s) anterior(es). ${tel}${p.antecedentes?' · Antecedentes: '+p.antecedentes:''}.`;
+    ban.classList.add('vis');
+  } else {
+    matchIdx=-1;
+    ban.classList.remove('vis');
+  }
+}
+
+function cargarExistente(){
+  if(matchIdx<0) return;
+  const p=DB.pacientes[matchIdx];
+  document.getElementById('n-nombre').value=p.nombre;
+  document.getElementById('n-edad').value=p.edad||'';
+  document.getElementById('n-antec').value=p.antecedentes||'';
+  document.getElementById('n-tel').value='';
+  cerrarBanner();
+}
+function cerrarBanner(){ document.getElementById('banner').classList.remove('vis'); }
+
+/* ─────────────── EXÁMENES ─────────────── */
+function addExam(){
+  const en=document.getElementById('n-exam');
+  const nombre=en.value.trim();
+  if(!nombre){en.focus();return;}
+  exams.push(nombre);
+  renderExams();
+  en.value=''; en.focus();
+}
+function removeExam(i){ exams.splice(i,1); renderExams(); }
+function renderExams(){
+  document.getElementById('exam-list').innerHTML=exams.map((e,i)=>`
+    <div class="exam-tag">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+        <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/>
+      </svg>
+      <span>${e}</span>
+      <button class="exam-del" onclick="removeExam(${i})" aria-label="Eliminar">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+/* ─────────────── GUARDAR ─────────────── */
+function guardar(){
+  const nombre=document.getElementById('n-nombre').value.trim();
+  if(!nombre){alert('El nombre del paciente es requerido.');return;}
+  if(!exams.length){alert('Agrega al menos un estudio clínico.');return;}
+
+  const edad =document.getElementById('n-edad').value.trim();
+  const tel  =document.getElementById('n-tel').value.trim();
+  const antec=document.getElementById('n-antec').value.trim();
+  const ts   =Date.now();
+  const visita={fecha:HOY_KEY,examenes:[...exams],estado:'pendiente',ts};
+
+  let pacId;
+  if(matchIdx>=0){
+    /* Paciente existente — solo actualiza */
+    const p=DB.pacientes[matchIdx];
+    if(tel&&!p.telefonos.includes(tel)) p.telefonos.push(tel);
+    if(edad) p.edad=edad;
+    if(antec) p.antecedentes=antec;
+    if(!p.visitas) p.visitas=[];
+    p.visitas.unshift(visita);
+    pacId=p.id;
+  } else {
+    /* Paciente nuevo — crea historial */
+    pacId=ts;
+    DB.pacientes.unshift({
+      id:pacId, nombre, edad,
+      telefonos:tel?[tel]:[],
+      antecedentes:antec,
+      visitas:[visita]
+    });
+  }
+
+  DB.ordenes.unshift({
+    id:ts, pacId,
+    pacNombre:nombre, pacEdad:edad, pacAntec:antec,
+    fecha:HOY_KEY, examenes:[...exams],
+    estado:'pendiente', ts
+  });
+
+  saveDB(DB);
+  actualizarBadges();
+  bump('badge-dia');
+  bump('badge-pac');
+  limpiar();
+  alert('✓ Registro guardado correctamente.');
+}
+
+function limpiar(){
+  ['n-nombre','n-edad','n-tel','n-antec'].forEach(id=>document.getElementById(id).value='');
+  exams=[]; matchIdx=-1;
+  renderExams();
+  cerrarBanner();
+}
+
+/* ─────────────── ÓRDENES DEL DÍA ─────────────── */
+function cambiarEstado(oid,val){
+  const o=DB.ordenes.find(o=>o.id===oid);
+  if(!o) return;
+  o.estado=val;
+  const p=DB.pacientes.find(p=>p.id===o.pacId);
+  if(p&&p.visitas){const v=p.visitas.find(v=>v.ts===o.ts);if(v)v.estado=val;}
+  saveDB(DB);
+  renderDia();
+}
+
+function renderDia(){
+  const ords =DB.ordenes.filter(o=>o.fecha===HOY_KEY);
+  const pend =ords.filter(o=>o.estado==='pendiente').length;
+  const list =ords.filter(o=>o.estado==='listo').length;
+  const entr =ords.filter(o=>o.estado==='entregado').length;
+
+  document.getElementById('stat-row').innerHTML=`
+    <div class="stat-card">
+      <div class="stat-lbl">Pacientes hoy</div>
+      <div class="stat-val">${ords.length}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-lbl">Estado general</div>
+      <div class="stat-sub" style="font-size:17px;font-weight:700;color:var(--c5);margin-top:6px">
+        ${pend} pend. &nbsp;/&nbsp; ${list} listos &nbsp;/&nbsp; ${entr} entregados
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-lbl">Total de estudios</div>
+      <div class="stat-val">${ords.reduce((a,o)=>a+o.examenes.length,0)}</div>
+    </div>`;
+
+  const cont=document.getElementById('ordenes-list');
+  if(!ords.length){
+    cont.innerHTML=`<div class="empty">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <p>No hay órdenes registradas hoy.</p>
+    </div>`;
+    return;
+  }
+  cont.innerHTML=ords.map(o=>`
+    <div class="orden-card">
+      <div class="orden-hdr">
+        <div class="avatar">${ini(o.pacNombre)}</div>
+        <div style="flex:1">
+          <div class="orden-name">${o.pacNombre}</div>
+          <div class="orden-meta">${o.pacEdad?o.pacEdad+' años':''}${o.pacAntec?' · '+o.pacAntec:''}</div>
+        </div>
+        ${badge(o.estado)}
+      </div>
+      <div class="pills">
+        ${o.examenes.map(e=>`<span class="pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+            <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/>
+          </svg>${e}</span>`).join('')}
+      </div>
+      <div class="orden-footer">
+        <span style="font-size:12px;color:var(--ct3);font-weight:600">${o.examenes.length} estudio(s)</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <select class="status-sel" onchange="cambiarEstado(${o.id},this.value)">
+            <option value="pendiente"${o.estado==='pendiente'?' selected':''}>⏳ Pendiente</option>
+            <option value="listo"${o.estado==='listo'?' selected':''}>✓ Listo</option>
+            <option value="entregado"${o.estado==='entregado'?' selected':''}>✅ Entregado</option>
+          </select>
+          <button class="btn-del" onclick="borrarOrden(${o.id})" title="Eliminar orden">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Borrar
+          </button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+/* ─────────────── HISTORIAL ─────────────── */
+function renderHistorial(q){
+  const cont=document.getElementById('hist-list');
+  const cnt =document.getElementById('hist-count');
+  let data=[...DB.pacientes];
+  if(q&&q.length>1){const n=norm(q);data=data.filter(p=>norm(p.nombre).includes(n));}
+  cnt.textContent=data.length?data.length+' paciente(s) encontrado(s)':'';
+  if(!data.length){
+    cont.innerHTML=`<div class="empty">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <p>${q?'Sin resultados para "'+q+'"':'Aún no hay pacientes registrados.'}</p>
+    </div>`;
+    return;
+  }
+  cont.innerHTML=data.map(p=>{
+    const open=openPacs.has(p.id);
+    const ult=p.visitas&&p.visitas[0]?p.visitas[0].fecha:'—';
+    return`<div class="pac-card" onclick="togglePac(${p.id})">
+      <div class="pac-hdr">
+        <div class="avatar">${ini(p.nombre)}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:15px">${p.nombre}</div>
+          <div style="font-size:12px;color:var(--ct3);font-weight:600;margin-top:2px">
+            ${p.edad?p.edad+' años · ':''}Última visita: ${ult} · ${p.visitas?p.visitas.length:0} visita(s)
+          </div>
+        </div>
+        <svg class="chev${open?' open':''}" viewBox="0 0 24 24">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+        ${open?`<button class="btn-del btn-sm" style="margin-left:8px" onclick="event.stopPropagation();borrarPaciente(${p.id})">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          Borrar paciente
+        </button>`:''}
+      </div>
+      ${open?`<div class="det-box" onclick="event.stopPropagation()">
+
+        ${p.telefonos&&p.telefonos.length?`
+        <div class="det-sec">
+          <h5><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 12.22 19.79 19.79 0 0 1 1.13 3.59 2 2 0 0 1 3.11 1.4h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.09 9a16 16 0 0 0 7.91 7.91l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22.4 18z"/></svg>Teléfono(s) registrado(s)</h5>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            ${p.telefonos.map(t=>`<span class="phone-chip"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 12.22 19.79 19.79 0 0 1 1.13 3.59 2 2 0 0 1 3.11 1.4h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.09 9a16 16 0 0 0 7.91 7.91l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22.4 18z"/></svg>${t}</span>`).join('')}
+          </div>
+        </div>`:''}
+
+        ${p.antecedentes?`
+        <div class="det-sec">
+          <h5><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Antecedentes</h5>
+          <p style="font-size:13px;font-weight:500;color:var(--ct2)">${p.antecedentes}</p>
+        </div>`:''}
+
+        <div class="det-sec">
+          <h5><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Historial de estudios</h5>
+          ${p.visitas&&p.visitas.length?p.visitas.map(v=>`
+            <div class="vis-row">
+              <span class="vis-date">${v.fecha}</span>
+              <div style="flex:1">
+                <div class="pills" style="margin:0 0 3px">
+                  ${v.examenes.map(e=>`<span class="pill" style="font-size:11.5px">${e}</span>`).join('')}
+                </div>
+              </div>
+              ${badge(v.estado||'entregado')}
+              <button class="btn-del-sm" onclick="event.stopPropagation();borrarVisita(${p.id},${v.ts})" title="Eliminar esta visita">
+                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+              </button>
+            </div>`).join(''):'<p style="font-size:13px;color:var(--ct3);font-weight:500">Sin visitas.</p>'}
+        </div>
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function togglePac(id){
+  if(openPacs.has(id))openPacs.delete(id);else openPacs.add(id);
+  renderHistorial(document.getElementById('search').value);
+}
+
+/* ─────────────── MODAL ─────────────── */
+let pendingDelete = null; // { type, id, extra }
+
+function abrirModal(title, body, action){
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML    = body;
+  pendingDelete = action;
+  document.getElementById('modal-overlay').classList.add('vis');
+}
+function cerrarModal(){
+  document.getElementById('modal-overlay').classList.remove('vis');
+  pendingDelete = null;
+}
+function confirmarEliminar(){
+  if(pendingDelete) pendingDelete();
+  cerrarModal();
+}
+
+/* ─────────────── BORRAR ORDEN DEL DÍA ─────────────── */
+function borrarOrden(oid){
+  const o = DB.ordenes.find(o=>o.id===oid);
+  if(!o) return;
+  abrirModal(
+    '¿Eliminar esta orden?',
+    `Se eliminará la orden de <span class="modal-strong">${o.pacNombre}</span> del ${o.fecha}. Los datos del paciente en el historial se conservan.`,
+    () => {
+      // Eliminar la visita correspondiente del paciente
+      const p = DB.pacientes.find(p=>p.id===o.pacId);
+      if(p && p.visitas) p.visitas = p.visitas.filter(v=>v.ts!==o.ts);
+      // Eliminar la orden
+      DB.ordenes = DB.ordenes.filter(x=>x.id!==oid);
+      saveDB(DB);
+      actualizarBadges();
+      renderDia();
+    }
+  );
+}
+
+/* ─────────────── BORRAR VISITA INDIVIDUAL ─────────────── */
+function borrarVisita(pacId, ts){
+  const p = DB.pacientes.find(p=>p.id===pacId);
+  const v = p && p.visitas ? p.visitas.find(v=>v.ts===ts) : null;
+  if(!v) return;
+  abrirModal(
+    '¿Eliminar esta visita?',
+    `Se eliminará la visita del <span class="modal-strong">${v.fecha}</span> de <span class="modal-strong">${p.nombre}</span>.<br>Los demás registros del paciente se conservan.`,
+    () => {
+      p.visitas = p.visitas.filter(v=>v.ts!==ts);
+      DB.ordenes = DB.ordenes.filter(o=>o.ts!==ts);
+      saveDB(DB);
+      actualizarBadges();
+      renderHistorial(document.getElementById('search').value);
+    }
+  );
+}
+
+/* ─────────────── BORRAR PACIENTE COMPLETO ─────────────── */
+function borrarPaciente(pacId){
+  const p = DB.pacientes.find(p=>p.id===pacId);
+  if(!p) return;
+  const nvis = p.visitas ? p.visitas.length : 0;
+  abrirModal(
+    '¿Eliminar paciente completo?',
+    `Se eliminará el expediente de <span class="modal-strong">${p.nombre}</span> y sus <span class="modal-strong">${nvis} visita(s)</span> registradas. Esta acción no se puede deshacer.`,
+    () => {
+      const tss = (p.visitas||[]).map(v=>v.ts);
+      DB.pacientes = DB.pacientes.filter(x=>x.id!==pacId);
+      DB.ordenes   = DB.ordenes.filter(o=>!tss.includes(o.ts));
+      openPacs.delete(pacId);
+      saveDB(DB);
+      actualizarBadges();
+      renderHistorial(document.getElementById('search').value);
+    }
+  );
+}
+
+</script>
+</body>
+</html>
